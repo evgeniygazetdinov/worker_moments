@@ -7,14 +7,18 @@ from lastwill.swaps_common.tokentable.models import TokensCoinMarketCap
 def  first_request():
     res = requests.get('https://s2.coinmarketcap.com/generated/search/quick_search.json')
     l = res.json()
-    return l
+    id_rank = dict()
+    for i in range(len(l)):
+        id_rank['{}'.format((l[i]['id']))] = l[i]['rank']
+
+    return id_rank
 
 
 def second_request(token_list):
-    id = list_str = ','.join(str(e) for e in token_list)
+    id = list_str = ','.join(str(key) for key in token_list.items())
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/info'
     parameters = {
-        'id':id
+        'id': id
     }
     headers = {
         'Accepts': 'application/json',
@@ -25,60 +29,51 @@ def second_request(token_list):
     session.headers.update(headers)
     try:
         response = session.get(url, params=parameters)
-        print(response.text)
         data = json.loads(response.text)
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         print(e)
-
-
-def compare_two_json(first_json,second_json):
-    a = json.loads(json_1)
-    b = json.loads(json_2)
-    diff = dict()
-    try:
-        for key['id'] in a.keys():
-            if key['token_cmc_id'] not in b:
-                diff['id'] = key['id']
-    except:
-        pass
-        return diff
-
+    return data
 
 def find_by_parameters():
     l = first_request()
-    from_db =TokensCoinMarketCap.objects.all().values_list('id', flat=True)
-    #values cmc
-    if len(l) != quantity.count():
-        diff =compare_two_json(l)
-        new_ids = dict()
-        for key in  diff.keys()
-            info_for_save = second_request(id)
-            new_ids = info_for_save
+    print(l)
+    db =TokensCoinMarketCap.objects.all().values_list('token_cmc_id', flat=True)
+      #convert to list
+    id_from_market = [key for key in l.keys()]
+    id_from_db = [id for id in db ]
+    print('*'*10)
+     if len(l) != len(id_from_db):
+        result = set(l) - set(id_from_db)
+        new_id = filter(None,result)
+        print("&"*50)
+        print(new_id)
+        print("%"*50)
+        print(l)
+        info = dict()
+        for id in new_id:
+            for key,value in l.items():
+                if  id == key:
+                    info[key] = value
+        print(info)
+        info_for_save = second_request(info)
+        return info_for_save
 
 
-def save_into_base(dict_for_save):
-    for key in dict_for_save:
-            obj = TokensCoinMarketCap(token_cmc_id = key['id'], token_name = key['name'],
-                                    token_short_name = key['symbol'], image_link = key['logo'],
-                                    token_rank = key['rank'],token_platform = key['slug'],token_address = key['token_address'])
-            """
-            platform_data = dict_json[item]['platform']
+def save_into_base(dict_for_save,rank):
+    for key,value in dict_for_save['data'].items():
+            obj = TokensCoinMarketCap(token_cmc_id =value ['id'], token_name = value['name'],
+                                    token_short_name = value['symbol'], image_link =value['logo'],
+                                    token_rank = rank[key]['rank'],token_platform =value['slug'],token_address = value['token_address'])
+            platform_data = value['platform']
             if platform_data is not None:
                 token.token_platform = platform_data['slug']
                 token.token_address = platform_data['token_address']
             else:
                 token.token_platform = None
                 token.token_address = '0x0000000000000000000000000000000000000000'
-            """
 
             obj.save()
-
 
 def find_new_tokens():
     values_for_save = find_by_parameters()
     save_into_base(values_for_save)
-
-
-
-if __name__ =="__main__":
-    find_new_tokens()
