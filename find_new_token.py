@@ -50,10 +50,18 @@ def find_by_parameters():
                      id_rank[key] = value
     print((id_rank))
     info_for_save = second_request(id_rank)
+    rank = [value for i in id_rank.values()]
+    count = 0
     for key,value in info_for_save['data'].items():
+        count=+1
         obj = TokensCoinMarketCap(token_cmc_id =value ['id'], token_name = value['name'],
                                         token_short_name = value['symbol'], image_link =value['logo'],
-                                        token_rank = 1 ,token_platform =value['slug'],token_address = value['token_address']
-                                        )
+                                        token_rank = rank[count])
+        if value['platform'] is not None:
+            TokensCoinMarketCap(token_platform = value['platform']['slug'],token_address = value['platform']['token_address'])
+
+        else:
+            TokensCoinMarketCap(token_platform = None,token_address = '0x0000000000000000000000000000000000000000')
+        print(obj)
 def find_new_tokens():
     values_for_save = find_by_parameters()
