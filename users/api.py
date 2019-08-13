@@ -32,15 +32,26 @@ def profile_view(request):
     return Response(UserSerializer(request.user).data)
 
 @api_view()
+def add_quadrators_to_user(request):
+    user = User.objects.get(id = request.user.id)
+    serializer = UserSerializer()
+    result = serializer.to_representation(user)
+    return Response(result)
+    
+             
+      
+
+@api_view() 
 def user_cameras(request):
     if request.user.is_anonymous:
         raise PermissionDenied()
-    if not request.user.cameras_access:
+    if not request.user.cameras_access: 
         user_groups = []
     else:
         user_groups = request.user.cameras_access.get('groups', [])
     groups_ids = [x['group'] for x in user_groups]
     if not groups_ids:
+
         if request.user.is_staff:
             groups_objects = CameraGroup.objects.all()
         else:
