@@ -1,3 +1,4 @@
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import PermissionDenied
@@ -25,33 +26,65 @@ class UserViewSet(ModelViewSet):
         return queryset.filter(id=self.request.user.id)
 
 
+class Add_info_to_user(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def update(self,instance,validated_data):
+        serializer_class = QuadratorSerializer()
+        return Response(serializer_class)
+
+
 @api_view()
 def profile_view(request):
     if request.user.is_anonymous:
         raise PermissionDenied()
     return Response(UserSerializer(request.user).data)
 
-@api_view()
-def add_quadrators_to_user(request):
-    user = User.objects.get(id = request.user.id)
-    serializer = UserSerializer()
-    result = serializer.to_representation(user)
-    return Response(result)
-    
-             
-      
 
-@api_view() 
+class Add_to_user(APIView):
+
+    def get(self,request):
+        user = User.objects.get(id = request.user.id)
+        serializer = UserSerializer()
+        result = serializer.to_representation(user)
+        return Response(result)
+
+    def post(self,request,quadrator):
+        pass
+        """user = User.objects.get(id = request.user.id)
+        serializer = UserSerializer()
+        result = serializer.to_representation(user)
+        serializer_quad = QuadratorSerializer(quadrator)
+        result = serializer.update(quadrator_access = serializer_quad)
+        """
+
+
+@api_view(['GET', 'POST'])
+def add_quadrators_to_user(request):
+
+    if request.method == 'GET':
+        user = User.objects.get(id = request.user.id)
+        serializer = UserSerializer()
+        result = serializer.to_representation(user)
+        return Response(result)
+    elif request.method == "POST":
+        #quadrator = request.user.quadrator_access
+        serializer_quad = QuadratorSerializer()
+        result = serializer.to_representation['quadrator_access'](serializer_quad)
+        return Response(result)
+
+
+@api_view()
 def user_cameras(request):
     if request.user.is_anonymous:
         raise PermissionDenied()
-    if not request.user.cameras_access: 
+    if not request.user.cameras_access:
         user_groups = []
     else:
         user_groups = request.user.cameras_access.get('groups', [])
     groups_ids = [x['group'] for x in user_groups]
     if not groups_ids:
-
         if request.user.is_staff:
             groups_objects = CameraGroup.objects.all()
         else:
@@ -62,9 +95,9 @@ def user_cameras(request):
     camera_serializer = CameraSerializer(context={'request': request})
     result = {'groups': []}
     for group_object in groups_objects:
-    group_repr = camera_group_serializer.to_representation(group_object)
+        group_repr = camera_group_serializer.to_representation(group_object)
         if group_object.id not in groups_ids:
-            cameras_objects = Camera.objects.filter(camera_group=group_object)
+           cameras_objects = Camera.objects.filter(camera_group=group_object)
         else:
            user_cameras_for_this_group = list(filter(lambda x: x['group'] == group_object.id, user_groups))[0]['cameras']
            if not user_cameras_for_this_group:
@@ -98,9 +131,6 @@ def user_cameras(request):
     return Response(result)
 
 
-
-
-
 @api_view()
 def user_quadrators(request):
     if request.user.is_anonymous:
@@ -108,7 +138,7 @@ def user_quadrators(request):
     if not request.user.quadrator_access:
         user_groups = []
     else:
-        user_groups = request.user.quadrator_access.get()
+        user_groups = request.user.quadrator_access.get('quadrators_groups', [])
     groups_ids = [x['group'] for x in user_groups]
     if not groups_ids:
         if request.user.is_staff:
@@ -152,7 +182,6 @@ def user_quadrators(request):
     return Response(result)
 
 
-
 class CamSetViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = CamSet.objects.all()
@@ -163,4 +192,3 @@ class CamSetViewSet(ModelViewSet):
         if not self.request.user.is_staff:
             return queryset.filter(user=self.request.user)
         return queryset
-                                
