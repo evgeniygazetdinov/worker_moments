@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_stylesheets %}
+<link rel="stylesheet" href="{% static "css/bootstrap.css" %}">
+    <style>
+     .help-form--danger {
+         border: 2px solid red !important;
+     }
+    .help-form--danger:focus {
+        outline: none !important;
+    }
+
+    .help-form--danger + span.label.label-danger {
+          font-size: 1.5rem;
+          margin-top: 1rem;
+          display: inline-block;
+    }
+    .main-wrap .main-container .secondary-navigation {
+        justify-content: space-around;
+    }
+   .main-wrap .main-container .secondary-navigation a {
+        padding:0px 0px;
+        margin-left:0px;
+    }
+
+    </style>
+{% csrf_token %}
+{% endblock %}
+
+{% block title %}{{ flatpage.title }}{% endblock %}
+
+{% load urlbreadcrumbs_tags %}
+{% block breadcrumbs %}
+    {% render_breadcrumbs flatpage.title %}
+{% endblock %}
+
+{% block content %}
+<section>
+    {{ flatpage.body|safe }}
+    {{ social_sharing|safe }}
+</section>
+    {% if flatpage.url == '/help' %}
+    <script src="{% static "js/help.js" %}"></script>
+    {% endif %}
+{% endblock %}
