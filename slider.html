@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load images hrefs banners_render string cdn_url %}
+{% block title %}
+    {% if title %}
+        {{ title }} | Расписание | Канал Disney
+    {% else %}
+        Телепрограмма | Канал Disney
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <section>
+         <a class="header">Телепрограмма</a>
+            <nav class="schedule-controls">
+                <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            {% for item in tv %}
+                                <div class="swiper-slide">
+                                    <a class="{{ item.day.class }}">{{ item.day.title }}</a>
+                                </div>
+                            {% endfor %}
+                         </div>
+                         <div class="swiper-button-prev"></div>
+                        <div class="swiper-button-next"></div>
+                </div>
+            </nav>
+
+        <div class="schedule-tabs">
+            <!-- DAYS -->
+            {% for item in tv %}
+                <ul class="{{ item.day.class }}">
+                    {% set rightnow = 0 %}
+                    <!-- "HOURS" -->
+                    {% for program in item.programs %}
+                    <li class="{{ program.class }}">
+                        <div class="time">{{ program.item.date_start|date:"H:i" }}</div>
+
+						{% if program.can_schedule %}
+                        <div class="do-schedule" style="display: none"
+              							 data-title="{{ program.item.program.title }}"
+              							 data-event-title="{{ program.item.program.schedule_text_or_title }}"
+              							 data-program="{{ program.item.program.pk }}"
+                             data-date-start="{{ program.date_start }}"
+                             data-date-end="{{ program.date_end }}"
+                             data-date-start-utc="{{ program.date_start_utc }}"
+                             data-date-end-utc="{{ program.date_end_utc }}">
+						</div>
+						{% endif %}
+
+                        <div class="time-schedule-separator"></div>
+
+                        <a {% href_or_none program.item.program %} class="pic lazy"
+                            data-original="{{ program.item.program.cdn_image }}">
+
+                            {% if program.item.program.rating %}
+                                <div class="age">{{ program.item.program.rating }}</div>
+                            {% endif %}
+                        </a>
+                        <div class="text">
+                            <a {% href_or_none program.item.program %} class="name">{{ program.item.program.title }}</a>
+                            <div class="description">{{ program.item.program.description|default:""|safe }}</div>
+                            {% if program.class == 'rightnow' %}
+                            {% if program.item.program.get_absolute_url %}
+                                <a {% href_or_none program.item.program %} class="link">Подробнее</a>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </li>
+                      {% if 'rightnow' == program.class %}
+                        {% set rightnow = forloop.counter %}
+                        {% increment rightnow %}
+                      {% endif %}
+                      {% if rightnow == forloop.counter %}
+                          <li class="fit-screen">{% interscroller_mobile_banner %}</li>
+                          <li class="fit-screen">{% interscroller_tablet_banner %}</li>
+                      {% endif %}
+                    {% empty %}
+                    <p>На данный день нет телепрограммы</p>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </div>
+    </section>
+    {% stitch_banner %}
+{% endblock %}
+
+
+{% block end_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+    $(window).load(function() {
+  addMobileScheduleButtons();
+
+  (function() {
+    if (window.addtocalendar)
+      if (typeof window.addtocalendar.start == 'function') return;
+    if (window.ifaddtocalendar == undefined) {
+      window.ifaddtocalendar = 1;
+      var d = document,
+        s = d.createElement('script'),
+        g = 'getElementsByTagName';
+      s.type = 'text/javascript';
+      s.charset = 'UTF-8';
+      s.async = true;
+      s.src =
+        ('https:' == window.location.protocol ? 'https' : 'http') +
+        '://addtocalendar.com/atc/1.5/atc.min.js';
+      var h = d[g]('body')[0];
+      h.appendChild(s);
+    }
+  })();
+});
+</script>
+<script>
+$(".swiper-container").each(function(index, element){
+    var $this = $(this);
+
+    $this.swiper({
+        nextButton: $this.find(".swiper-button-next")[0],
+        prevButton: $this.find(".swiper-button-prev")[0],
+        slidesPerView: 4,
+        loop: false,
+        height:50,
+        width:500,
+    });
+});
+
+</script>
+{% endblock %}
