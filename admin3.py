@@ -7,7 +7,7 @@ import pytils, os, zipfile
 
 
 class SliderAdmin(admin.ModelAdmin):
-
+    
     def save_model(self,request,obj,form,change):
         if obj.slider_type == 0:
             if obj.image == "":
@@ -19,13 +19,19 @@ class SliderAdmin(admin.ModelAdmin):
             if obj.image_mobile == None:
                 messages.set_level(request, messages.ERROR)
                 messages.error(request,'нет картинки для смартфона')
+            #if obj.image_mobile == None or obj.image_tablet == None or obj.image_mobile == None and obj.slider_type ==1:
+            #     
             else:
                 obj.save()
             
-#            messages.error(request,'не заполнены все поля')
         if obj.slider_type == 1:
-            if obj.html5_zip is not None:
+            print(obj.html5_zip)
+            if  obj.html5_zip == None:
+                messages.set_level(request, messages.ERROR)
+                messages.error(request,'нет архива')
+            else:
                 obj.save()
+    
         
             
 
@@ -34,3 +40,7 @@ class SliderAdmin(admin.ModelAdmin):
 admin.site.register(SiteMainPageSlider, SliderAdmin)
 
 
+
+
+
+        
