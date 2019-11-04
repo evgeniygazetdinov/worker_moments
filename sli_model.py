@@ -48,6 +48,12 @@ class SiteMainPageSlider(models.Model):
         return None
  
     @property
+    def property_path(self):
+        property = {}
+        return property    
+
+
+    @property
     def appearance(self):
         return self.appearance_objects.first()
 
@@ -55,28 +61,26 @@ class SiteMainPageSlider(models.Model):
         pictures = os.getcwd() + '/media/' + (os.path.splitext(self.html5_zip.name)[0])
         path = pictures + where
         files = {}
-        tablet = r'tablet_\d+x\d+'
-        phone = r'mobile_\d+x\d+'
+        tablet = r'tablet_\d+x\d+.'
+        mobile = r'mobile_\d+x\d+.'
+        desktop = r'desktop_\d+x\d+'
         print(path)
-        for r, d, f in os.walk(path):
-            print(r,d,f)
-            for file in f:
-                print(file)
-                print('this files')
-                if re.match(tablet,file):
+        for entry in os.listdir(path):
+            if os.path.isfile(os.path.join(path, entry)):
+                if re.match(tablet,entry,re.UNICODE):
                     print("has tablet")
-                    files['tablet'] = os.path.join(r, file)
-                if re.match(phone,file) :
+                    files['tablet'] = os.path.join(path, entry)
+                if re.match(mobile,entry,re.UNICODE) :
                     print("has phone")
-                    files['phone'] = os.path.join(r, file)
-                if file.endswith('.jpg'):
+                    files['mobile'] = os.path.join(path, entry)
+                if re.match(desktop,entry,re.UNICODE): 
                     print("has desktop")
-                    files['desktop']= os.path.join(r,file)
-                if file.endswith('.mp4'):
+                    files['desktop']= os.path.join(path,entry)
+                if entry.endswith('.mp4'):
                     print("has iframe")
-                    files['iframe']= os.path.join(r,file)
-                return files
-
+                    files['iframe']= os.path.join(path,entry)
+        return files
+                
 
     def extract_zip_archive(self):
         if not self.html5_zip: return
@@ -94,5 +98,10 @@ class SiteMainPageSlider(models.Model):
     def save(self,*args,**kwargs):
         super(SiteMainPageSlider,self).save(*args,**kwargs)
         self.extract_zip_archive()
-        self.find_all_files('/images/')
-        self.find_all_files('/media/')
+        pict = self.find_all_files('/images/')
+        iframe = self.find_all_files('/media/')
+        self.code = str(iframe['iframe'])
+        self.image = pict['desktop']
+        self.image_tablet = pict['tablet']
+        self.image_mobile = pict['mobile']
+        super(SiteMainPageSlider,self).save(*args,**kwargs)
