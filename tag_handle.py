@@ -14,9 +14,19 @@ from apps.tv.models import TVProgram, TVProgramItem
 register = template.Library()
 
 @register.simple_tag(takes_context=True)
+def shedule_ids(context):
+    ids =[]
+    slug = context['request'].resolver_match.kwargs.get('slug')
+    try:
+        ids = find_week_days(slug)
+    except:
+        return ''
+    return '<meta property="{}" id="{}" />'.format('shedule_ids',ids)
+
+
+@register.simple_tag(takes_context=True)
 def seotag(context, type):
-    res = get_seo_by_context(context) 
-    seo, _ = res['seo'],res['find_by_slug']
+    seo, _ = get_seo_by_context(context)
     content = ''
     if seo: content = getattr(seo, 'seo_' + type)
     if not content: return ''
@@ -27,9 +37,7 @@ def seotag(context, type):
 
 @register.simple_tag(takes_context=True)
 def ogtag(context, type):
-    res = get_seo_by_context(context) 
-    seo, finded = res['seo'],res['find_by_slug']
-    ids = res['ids']
+    seo, finded = get_seo_by_context(context)
     content = ''
     if seo: content = getattr(seo, 'og_' + type)
     if not content and ('image' != type or not finded ) and ('schedule_ids' != type): return ''
@@ -40,21 +48,20 @@ def ogtag(context, type):
             return ''
     elif 'image' == type: 
         content = string.get_domain(context) + content.url
-        print('this image')
-        print('schedule_ids' == type)
-    elif 'schedule_ids' == type:
-        print("&"*10)
-        print("this shedule ids")
-        return '<meta property="og:{}" id="{}" />'.format(type,ids)
     return '<meta property="og:%(type)s" content="%(content)s" />' % {
         "type": type,
         "content": escape(content),
     }
 
+
+
+
+
+
+
 @register.simple_tag(takes_context=True)
 def social_sharing(context):
-    res = get_seo_by_context(context) 
-    seo, _ = res['seo'],res['find_by_slug']
+    seo, _ = get_seo_by_context(context)
     content = ''
     if not seo or not seo.social_sharing: return ''
     return '''
@@ -69,12 +76,14 @@ def social_sharing(context):
     <div class="dmodule__sharing_clear"></div>
     '''
 
+
+
+
 def get_seo_by_context(context):
     slug, url_name = context['request'].resolver_match.kwargs.get('slug'), context['request'].resolver_match.url_name
     content = ''
     seo = None
     find_by_slug = None
-    con = {'ids':[]}
     if None != slug:
         try:
             replace_names = {
@@ -92,7 +101,6 @@ def get_seo_by_context(context):
             if not isinstance(url_name, list): url_name = [url_name]
             for un in url_name:
                 try:
-                    ids = find_week_days(slug)
                     mod = ContentType.objects.get(model=un)
                     res_model = apps.get_model(mod.app_label, un)
                     find_by_slug = res_model.objects.get(slug=slug)
@@ -114,8 +122,6 @@ def get_seo_by_context(context):
             pass
     if seo is None:
         try:
-
-            ids = find_week_days(slug)
             find_by_slug = ProgramItem.objects.get(slug=slug)
             for addType in AdditionalTypes.objects.all():
                 try:
@@ -124,13 +130,8 @@ def get_seo_by_context(context):
                 except:
                     continue
         except: pass
-    try:
-        con['ids'] = find_week_days(slug)
-    except:
-        pass
-    con['seo'] = seo
-    con['find_by_slug'] = find_by_slug
-    return con
+    return seo, find_by_slug
+
 
 
 
@@ -150,3 +151,4 @@ def find_week_days(slug):
             on_week_id.append(on_day[0])
     
     return on_week_id
+
