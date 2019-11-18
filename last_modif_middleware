@@ -1,0 +1,37 @@
+from last_modified.middleware import LastModifiedMiddleware
+from starwars.urls import sitemaps as sitemaps_clases
+from apps.videos.models import Video
+import datetime
+
+class LastModify_Handler(LastModifiedMiddleware):
+    #add to each page lastmodify header
+    def find_sitemap(self):
+        sitemaps = []
+        for value in sitemaps_clases.values():
+            #instance classes in sitemaps
+            sitemap_instance = value()
+            values= sitemap_instance.get_urls()
+            for from_site_maps in values:
+                sitemaps.append(from_site_maps)
+        return sitemaps
+
+    def find_lastmod_in_sitemaps(self,slug,sitemaps):
+        fullpath = 'https://starwars.ru' + slug
+        default_modify = datetime.datetime.now()
+        for i in range(len(sitemaps)):
+            if str(sitemaps[i]['location']) == fullpath:
+                return sitemaps[i]['lastmod']
+        return default_modify
+
+
+    def find_page_slug(self,request):
+        return (request.path)
+
+
+    def process_response(self, request, response):
+        slug = self.find_page_slug(request)
+        sitemaps = self.find_sitemap()
+        last_mod = self.find_lastmod_in_sitemaps(slug,sitemaps) 
+        response['Last-Modified'] = last_mod
+        return response
+
