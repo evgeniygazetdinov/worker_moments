@@ -6,7 +6,6 @@ from apps.tv.models import TVProgram
 from django.views.generic import TemplateView
 from apps.programms.models import Programs
 from apps.faq.models import FAQ
-from apps.uznavayka.models import Uznavayka
 from apps.contest.models import Contest
 from django.shortcuts import render
 from django.views.generic import View
@@ -42,7 +41,6 @@ class IndexPage(TemplateView):
         context['animation'] = TVProgramItem.objects.big_animation(tz=timezone)[:self.ITEMS_PER_PAGE]
         context['projects'] = AnimationSerial.objects.filter(not_show=False)
         context['films'] = Films.objects.all()[:self.ITEMS_PER_PAGE]
-        context['uznavayka_all'] = Uznavayka.objects.filter(not_show=False)
         context['current_tv'] = current_tv
         context['tv'] = [current_tv] + list(tv)
         context['news'] = News.objects.main_page_news()
