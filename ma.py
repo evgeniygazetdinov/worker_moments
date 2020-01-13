@@ -1,12 +1,4 @@
-from apps.films.models import Films
-from apps.news.models import News
-from apps.serials.models import AnimationSerial
-from apps.tv.models import TVProgramItem
-from apps.tv.models import TVProgram
 from django.views.generic import TemplateView
-from apps.programms.models import Programs
-from apps.faq.models import FAQ
-from apps.contest.models import Contest
 from django.shortcuts import render
 from django.views.generic import View
 from django.db.models import Count, Max
